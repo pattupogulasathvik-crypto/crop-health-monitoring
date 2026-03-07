@@ -1,6 +1,7 @@
 streamlit
+firebase-admin
 numpy
 pillow
-tensorflow==2.13.0
-firebase-admin
+opencv-python-headless
 streamlit-autorefresh
+tensorflow-cpu==2.15.0
