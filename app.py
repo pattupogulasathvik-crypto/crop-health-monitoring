@@ -7,6 +7,9 @@ from streamlit_autorefresh import st_autorefresh
 import firebase_admin
 from firebase_admin import credentials, db
 
+import os
+import json
+
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -57,8 +60,8 @@ st_autorefresh(interval=5000, key="sensor_refresh")
 # ================= FIREBASE INIT =================
 @st.cache_resource
 def init_firebase():
-
-    cred = credentials.Certificate("firebase-key.json")
+    firebase_dict = json.loads(os.environ["FIREBASE_KEY"])
+    cred = credentials.Certificate(firebase_dict)
 
     if not firebase_admin._apps:
         firebase_admin.initialize_app(
@@ -175,6 +178,8 @@ def load_leaf_model():
     return load_model("tomato_leaf_disease_1model.h5", compile=False)
 
 
+leaf_model = load_leaf_model()
+
 LEAF_CLASSES = [
     "Tomato_Bacterial_spot","Tomato_Early_blight","Tomato_Late_blight",
     "Tomato_Leaf_Mold","Tomato_Septoria_leaf_spot","Tomato_Spider_mites",
@@ -203,8 +208,6 @@ leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"])
 if leaf:
 
     with st.spinner("Analyzing leaf..."):
-
-        leaf_model = load_leaf_model()
 
         img = Image.open(leaf).convert("RGB")
         st.image(img, width=250)
