@@ -4,4 +4,5 @@ numpy
 pillow
 opencv-python-headless
 streamlit-autorefresh
-tensorflow==2.13.0
+tensorflow-cpu
+h5py
