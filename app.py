@@ -2,13 +2,13 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 from keras.models import load_model
-from streamlit_autorefresh import st_autorefresh
 
 import firebase_admin
 from firebase_admin import credentials, db
 
 import os
 import json
+import time
 
 
 # ================= PAGE CONFIG =================
@@ -17,8 +17,6 @@ st.set_page_config(page_title="IoT Based Crop Health Monitoring System", layout=
 st.title("IoT Based Crop Health Monitoring System 🌱")
 st.divider()
 
-# ================= AUTO REFRESH =================
-st_autorefresh(interval=2000, key="sensor_refresh")
 
 # ================= FIREBASE INIT =================
 @st.cache_resource
@@ -42,9 +40,12 @@ sensor_ref = init_firebase()
 
 
 # ================= SESSION STATE =================
-for key in ["sensor_data","leaf_status","leaf_disease","final_decision"]:
+for key in ["sensor_data","leaf_status","leaf_disease","final_decision","last_update"]:
     if key not in st.session_state:
         st.session_state[key] = None
+
+if st.session_state.last_update is None:
+    st.session_state.last_update = 0
 
 
 # ================= THRESHOLDS =================
@@ -193,20 +194,24 @@ problem_sensors={}
 
 try:
 
-    data = sensor_ref.get()
+    if time.time() - st.session_state.last_update > 3:
 
-    if data:
+        data = sensor_ref.get()
 
-        raw_soil = data.get("soil",0)
+        if data:
 
-        soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
+            raw_soil = data.get("soil",0)
 
-        st.session_state.sensor_data={
-            "Temperature":data.get("temperature",0),
-            "Humidity":data.get("humidity",0),
-            "Soil Moisture":round(soil_percent,1),
-            "Light":data.get("light",0),
-        }
+            soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
+
+            st.session_state.sensor_data={
+                "Temperature":data.get("temperature",0),
+                "Humidity":data.get("humidity",0),
+                "Soil Moisture":round(soil_percent,1),
+                "Light":data.get("light",0),
+            }
+
+        st.session_state.last_update = time.time()
 
 except:
     pass
