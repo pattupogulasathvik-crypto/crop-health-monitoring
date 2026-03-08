@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "crop-health-monitoring-57ff1",
+  "private_key_id": "75ac54e38bd7d4ba0b995ba243d5d69124870371",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCc45cpttCN2HUJ\nV+X+a3H+JbxljG6TcE+S7AqgbYNWhj05YCaCY67D2by4R0+2oarw7YJu+TzDjumF\n5VVJWW5mCu5RdpPerIkghyqtHh2cfLnontvOpVEf0dLyGAV93fTRKfamOjIh9uTo\nMak10UrJNJSeD6LhyA4pp9Ymr98mfpSxBnl6OgR8A8FXuD4HeyiF4njwB1+zOJkc\nGJwMIRYQwjK456NMEY7ONHiM7bDrXUrg2AYgkV1RoXRYcOLci+1M6Clf2wgMNi1u\nXpS9xDlJgS93fCH4ZY476AchgN5AtO1AtEGhH3XSsxLXxnjo1ZvlM76cUsRh231b\nXrv1XCqrAgMBAAECggEAAJ+k96z62j18hZt8Vg0OSHDU9WBgBiUBo/ddOXMF/R+O\neb5omMcVqECiz+a0qeitmcSP6qoB9FMKmZYmRyLcXfp4JQnAH7f22ZK/+C0w9/DE\n+mg7PnCIyIQYfw7aYrwxn203xkRf86OcGFIuNoEM94zGdHRidNxLNh4tKz0yuV/w\n1mcHE3xu9aKRxVeDdVPZPVTzK6mmWIusp61bjHM8m3MZSDAU4eGvzUvdA8fcLqad\nJtTGOfKlfzYdN970cJiETM6FVev3JLhcwLDTdGrHVU8kuQujRe+HKwSiyTCLagDn\nfNo5xV3mtrGvvfD6SUdnXsuJbGETpWIaQCgVsPdSCQKBgQDM4RPcji3eaXZ/O7CH\nMViB1cjAYBab9Ny3fRQNeKPBqc1DrOHPPzldH+NOepNUrZqI4gzKXuYOCpELCeGG\nNr8qo4Lm1VmsND2+fB+vZuL8xz47/bvriczl5273f6dFEOTA7qnKYYtVqeCzAOCQ\nDvgce+uOC3ouOMwiSvDswgYxiQKBgQDECRQL9OHx67So5DoHk3/xsGfYY+T2pz6x\nnQo7O78drYK1xGr6527csRpRPTl5tlhTfiEqVyseR/AM8gOCbs9R0lrNKWk3yrKv\nwQg2LOJ25Qxg3SSg/E3eVaX3uhfmSI9SZP6NRNB781yCmcDVb4tLIaJixHBkknVt\nezdq6Z6xkwKBgQCvkLDUb4Ie9YD1xtCfCUou+GPvdmfpfQsmsahdYuPxMPEU7TET\nx7oAczL2LVPTXHDwm8UaJfg+UA+6xdzchk2K3FNwO6N8TcgbU4JTbHdW5eYOwoAm\ndw9+c7RDosBUDwX3zozxQGWGIuzKeBX3XNyAjDBuqKcqtME5Ib8TI7DrAQKBgFWU\nKP43P1PfNBTu3S5lg9s8yXi70z6iMEpVZhwJrxsDniY/wvwZgFozrmt8sNSjd9er\nHktflmE3wmHEXSfZvAPaMu2RgG9su6jiOfV8jricsVSv9ceZnVzMQxHsWXacgoTT\nthRx0BnsWZxiBr6mXUbFPiCj5PTiwwSyX7T6m96lAoGBAIivCjsq8EgmjgFlB4N6\ngLrWsA9uaX6RvUFgQtqnHahd2B/fAyoG0B7AAFSNhsbf7CumCqyFL2rnlHES92cB\n+faG32u3E6JLhOoIxjxRFtHe5CLCigOk7HUa+YjrA5MAktIDh/cDnpjGM8Gtmwsf\ne2xXyloOHlh+6SCN/b9w0wbw\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@crop-health-monitoring-57ff1.iam.gserviceaccount.com",
+  "client_id": "112036409525858619596",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40crop-health-monitoring-57ff1.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
