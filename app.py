@@ -17,26 +17,32 @@ st.set_page_config(
     layout="centered"
 )
 
-# ===== MOBILE UI IMPROVEMENT =====
+# ================= MOBILE UI STYLE =================
 st.markdown("""
 <style>
 
+.main-title{
+font-size:42px;
+font-weight:700;
+text-align:center;
+}
+
 @media (max-width:768px){
 
-h1{
-font-size:28px !important;
+.main-title{
+font-size:30px;
 }
 
 h2{
-font-size:22px !important;
+font-size:22px;
 }
 
 h3{
-font-size:20px !important;
+font-size:20px;
 }
 
 .stMetric{
-font-size:14px !important;
+font-size:14px;
 }
 
 }
@@ -44,7 +50,7 @@ font-size:14px !important;
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("## IoT Based Crop Health Monitoring System 🌱")
+st.markdown('<div class="main-title">IoT Based Crop Health Monitoring System 🌱</div>', unsafe_allow_html=True)
 st.divider()
 
 
@@ -57,7 +63,6 @@ st_autorefresh(interval=5000, key="sensor_refresh")
 def init_firebase():
 
     firebase_dict = json.loads(os.environ["FIREBASE_KEY"])
-
     cred = credentials.Certificate(firebase_dict)
 
     if not firebase_admin._apps:
@@ -195,7 +200,7 @@ LEAF_SOLUTIONS = {
 
 
 # ================= LEAF =================
-st.header("Leaf Disease Detection 🍃")
+st.subheader("Leaf Disease Detection 🍃")
 
 leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"])
 
@@ -227,7 +232,7 @@ st.divider()
 
 
 # ================= LIVE SENSOR DATA =================
-st.header("Live Sensor Data 🌡️")
+st.subheader("Live Sensor Data 🌡️")
 
 sensor_statuses=[]
 problem_sensors={}
@@ -239,7 +244,6 @@ try:
     if data:
 
         raw_soil = data.get("soil",0)
-
         soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
 
         st.session_state.sensor_data={
@@ -267,7 +271,7 @@ if st.session_state.sensor_data:
     light_status = "ON" if d["Light"]==0 else "OFF"
     col4.metric("💡 Light", light_status)
 
-    st.subheader("📊 Sensor Health Status")
+    st.markdown("**Sensor Health Status**")
 
     for s,(lo,hi) in REALTIME_THRESHOLDS.items():
 
@@ -285,39 +289,32 @@ st.divider()
 
 
 # ================= EXTRA SENSOR SLIDERS =================
-st.header("Additional Sensor Inputs")
-
-cols = st.columns(2)
-i=0
+st.subheader("Additional Sensor Inputs")
 
 for s,(lo,hi) in EXTRA_SENSOR_THRESHOLDS.items():
 
-    with cols[i%2]:
+    v = st.slider(
+        s,
+        0.0,
+        float(hi*2),
+        float((lo+hi)/2),
+        0.1,
+        key=s
+    )
 
-        v = st.slider(
-            s,
-            0.0,
-            float(hi*2),
-            float((lo+hi)/2),
-            0.1,
-            key=s
-        )
+    stt = classify(v,lo,hi)
 
-        stt = classify(v,lo,hi)
+    sensor_statuses.append(stt)
 
-        sensor_statuses.append(stt)
+    if stt!="Healthy":
+        problem_sensors[s]=stt
 
-        if stt!="Healthy":
-            problem_sensors[s]=stt
-
-        if stt=="Healthy":
-            st.success("Healthy")
-        elif stt=="Moderate Stress":
-            st.warning("Moderate Stress")
-        else:
-            st.error("High Stress")
-
-    i+=1
+    if stt=="Healthy":
+        st.success("Healthy")
+    elif stt=="Moderate Stress":
+        st.warning("Moderate Stress")
+    else:
+        st.error("High Stress")
 
 
 overall = overall_status(sensor_statuses)
@@ -336,7 +333,7 @@ st.divider()
 
 
 # ================= FINAL DECISION =================
-st.header("Final Plant Health Decision")
+st.subheader("Final Plant Health Decision")
 
 if st.button("Final Plant Health Decision ✅"):
 
@@ -346,7 +343,6 @@ if st.button("Final Plant Health Decision ✅"):
     messages=[]
 
     if leaf=="Healthy" and sensor=="Healthy":
-
         st.session_state.final_decision=("success","🌿 Plant Healthy",["✅ No action required"])
 
     else:
@@ -357,17 +353,14 @@ if st.button("Final Plant Health Decision ✅"):
         for s,stt in problem_sensors.items():
 
             if s in LIVE_SENSOR_SOLUTIONS_MODERATE:
-
                 rec = LIVE_SENSOR_SOLUTIONS_SEVERE[s] if stt=="High Stress" else LIVE_SENSOR_SOLUTIONS_MODERATE[s]
 
             else:
 
                 if leaf=="Diseased" and stt=="High Stress":
                     rec = SENSOR_SOLUTIONS_CRITICAL[s]
-
                 elif stt=="High Stress":
                     rec = SENSOR_SOLUTIONS_SEVERE[s]
-
                 else:
                     rec = SENSOR_SOLUTIONS_MODERATE[s]
 
@@ -375,16 +368,12 @@ if st.button("Final Plant Health Decision ✅"):
 
         if leaf=="Healthy" and sensor=="Moderate Stress":
             level,title="warning","⚠️ Recoverable Environmental Stress"
-
         elif leaf=="Healthy" and sensor=="High Stress":
             level,title="error","🚨 Severe Environmental Stress"
-
         elif leaf=="Diseased" and sensor=="Healthy":
             level,title="error","🦠 Disease Detected"
-
         elif leaf=="Diseased" and sensor=="Moderate Stress":
             level,title="warning","🟠 HIGH RISK"
-
         else:
             level,title="error","🚨 CRITICAL CONDITION"
 
