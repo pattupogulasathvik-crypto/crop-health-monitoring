@@ -2,13 +2,13 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 from keras.models import load_model
+from streamlit_autorefresh import st_autorefresh
 
 import firebase_admin
 from firebase_admin import credentials, db
 
 import os
 import json
-import time
 
 
 # ================= PAGE CONFIG =================
@@ -16,6 +16,9 @@ st.set_page_config(page_title="IoT Based Crop Health Monitoring System", layout=
 
 st.title("IoT Based Crop Health Monitoring System 🌱")
 st.divider()
+
+# ================= AUTO REFRESH =================
+st_autorefresh(interval=5000, key="sensor_refresh")
 
 
 # ================= FIREBASE INIT =================
@@ -29,9 +32,7 @@ def init_firebase():
     if not firebase_admin._apps:
         firebase_admin.initialize_app(
             cred,
-            {
-                "databaseURL": "https://crop-health-monitoring-57ff1-default-rtdb.firebaseio.com/"
-            }
+            {"databaseURL": "https://crop-health-monitoring-57ff1-default-rtdb.firebaseio.com/"}
         )
 
     return db.reference("sensors")
@@ -40,12 +41,15 @@ sensor_ref = init_firebase()
 
 
 # ================= SESSION STATE =================
-for key in ["sensor_data","leaf_status","leaf_disease","final_decision","last_update"]:
+for key in [
+    "sensor_data",
+    "leaf_status",
+    "leaf_disease",
+    "final_decision",
+    "uploaded_leaf"
+]:
     if key not in st.session_state:
         st.session_state[key] = None
-
-if st.session_state.last_update is None:
-    st.session_state.last_update = 0
 
 
 # ================= THRESHOLDS =================
@@ -138,6 +142,7 @@ def load_leaf_model():
 
 leaf_model = load_leaf_model()
 
+
 LEAF_CLASSES = [
 "Tomato_Bacterial_spot","Tomato_Early_blight","Tomato_Late_blight",
 "Tomato_Leaf_Mold","Tomato_Septoria_leaf_spot","Tomato_Spider_mites",
@@ -163,13 +168,12 @@ st.header("Leaf Disease Detection 🍃")
 
 leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"])
 
-if leaf:
+if leaf is not None:
 
     img = Image.open(leaf).convert("RGB")
-    st.image(img,width=250)
+    st.session_state.uploaded_leaf = img
 
     arr = np.expand_dims(np.array(img.resize((224,224))) / 255.0, axis=0)
-
     pred = leaf_model.predict(arr, verbose=0)
 
     disease = LEAF_CLASSES[np.argmax(pred)]
@@ -177,10 +181,15 @@ if leaf:
     st.session_state.leaf_disease = disease
     st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
 
-    if disease=="Tomato_healthy":
+
+if st.session_state.uploaded_leaf is not None:
+
+    st.image(st.session_state.uploaded_leaf,width=250)
+
+    if st.session_state.leaf_status=="Healthy":
         st.success("🌿 Healthy Leaf")
     else:
-        st.error(f"🍂 {disease.replace('Tomato_','')}")
+        st.error(f"🍂 {st.session_state.leaf_disease.replace('Tomato_','')}")
 
 
 st.divider()
@@ -194,30 +203,25 @@ problem_sensors={}
 
 try:
 
-    if time.time() - st.session_state.last_update > 3:
+    data = sensor_ref.get()
 
-        data = sensor_ref.get()
+    if data:
 
-        if data:
+        raw_soil = data.get("soil",0)
 
-            raw_soil = data.get("soil",0)
+        soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
 
-            soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
-
-            st.session_state.sensor_data={
-                "Temperature":data.get("temperature",0),
-                "Humidity":data.get("humidity",0),
-                "Soil Moisture":round(soil_percent,1),
-                "Light":data.get("light",0),
-            }
-
-        st.session_state.last_update = time.time()
+        st.session_state.sensor_data={
+            "Temperature":data.get("temperature",0),
+            "Humidity":data.get("humidity",0),
+            "Soil Moisture":round(soil_percent,1),
+            "Light":data.get("light",0),
+        }
 
 except:
     pass
 
 
-# ================= DISPLAY SENSOR =================
 if st.session_state.sensor_data:
 
     d = st.session_state.sensor_data
@@ -258,7 +262,14 @@ for s,(lo,hi) in EXTRA_SENSOR_THRESHOLDS.items():
 
     with cols[i%2]:
 
-        v = st.slider(s,0.0,float(hi*2),float((lo+hi)/2),0.1)
+        v = st.slider(
+            s,
+            0.0,
+            float(hi*2),
+            float((lo+hi)/2),
+            0.1,
+            key=s
+        )
 
         stt = classify(v,lo,hi)
 
