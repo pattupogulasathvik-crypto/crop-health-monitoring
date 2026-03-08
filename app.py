@@ -1,8 +1,7 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-import keras
-load_model = keras.models.load_model 
+from tensorflow.keras.models import load_model
 from streamlit_autorefresh import st_autorefresh
 
 import firebase_admin
@@ -33,7 +32,7 @@ for key in ["sensor_data", "leaf_status", "leaf_disease", "final_decision"]:
 REALTIME_THRESHOLDS = {
     "Temperature": (18, 32),
     "Humidity": (40, 70),
-    "Soil Moisture": (20, 80),   # improved realistic range
+    "Soil Moisture": (20, 80),
 }
 
 EXTRA_SENSOR_THRESHOLDS = {
@@ -127,7 +126,6 @@ try:
 
         raw_soil = data.get("soil", 0)
 
-        # Soil sensor conversion (dry = 0)
         if raw_soil >= 4000:
             soil_percent = 0
         else:
@@ -223,5 +221,4 @@ if st.button("Final Plant Health Decision ✅"):
     if leaf == "Healthy" and sensor == "Healthy":
         st.success("🌿 Plant Healthy")
     else:
-
         st.warning("⚠️ Plant requires attention")
