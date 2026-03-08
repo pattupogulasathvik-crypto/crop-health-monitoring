@@ -4,5 +4,4 @@ numpy
 pillow
 opencv-python-headless
 streamlit-autorefresh
-keras
-h5py
+tensorflow==2.13.0
