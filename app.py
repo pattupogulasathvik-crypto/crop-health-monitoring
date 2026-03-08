@@ -12,10 +12,41 @@ import json
 
 
 # ================= PAGE CONFIG =================
-st.set_page_config(page_title="IoT Based Crop Health Monitoring System", layout="wide")
+st.set_page_config(
+    page_title="IoT Based Crop Health Monitoring System",
+    layout="centered"
+)
 
-st.title("IoT Based Crop Health Monitoring System 🌱")
+# ===== MOBILE UI IMPROVEMENT =====
+st.markdown("""
+<style>
+
+@media (max-width:768px){
+
+h1{
+font-size:28px !important;
+}
+
+h2{
+font-size:22px !important;
+}
+
+h3{
+font-size:20px !important;
+}
+
+.stMetric{
+font-size:14px !important;
+}
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("## IoT Based Crop Health Monitoring System 🌱")
 st.divider()
+
 
 # ================= AUTO REFRESH =================
 st_autorefresh(interval=5000, key="sensor_refresh")
@@ -226,14 +257,15 @@ if st.session_state.sensor_data:
 
     d = st.session_state.sensor_data
 
-    c1,c2,c3,c4 = st.columns(4)
+    col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
 
-    c1.metric("🌡 Temperature (°C)", d["Temperature"])
-    c2.metric("💧 Humidity (%)", d["Humidity"])
-    c3.metric("🌱 Soil Moisture (%)", d["Soil Moisture"])
+    col1.metric("🌡 Temperature (°C)", d["Temperature"])
+    col2.metric("💧 Humidity (%)", d["Humidity"])
+    col3.metric("🌱 Soil Moisture (%)", d["Soil Moisture"])
 
     light_status = "ON" if d["Light"]==0 else "OFF"
-    c4.metric("💡 Light", light_status)
+    col4.metric("💡 Light", light_status)
 
     st.subheader("📊 Sensor Health Status")
 
