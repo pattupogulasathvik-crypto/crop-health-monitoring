@@ -54,13 +54,24 @@ st.divider()
 st_autorefresh(interval=5000, key="sensor_refresh")
 
 
-# ================= FIREBASE =================
-cred = credentials.Certificate("firebase-key.json")
+# ================= FIREBASE INIT =================
+@st.cache_resource
+def init_firebase():
 
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred, {
-        "databaseURL": "https://crop-health-monitoring-57ff1-default-rtdb.firebaseio.com/"
-    })
+    cred = credentials.Certificate("firebase-key.json")
+
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(
+            cred,
+            {
+                "databaseURL": "https://crop-health-monitoring-57ff1-default-rtdb.firebaseio.com/"
+            }
+        )
+
+    return db.reference("sensors")
+
+
+sensor_ref = init_firebase()
 
 
 # ================= SESSION STATE =================
@@ -209,7 +220,6 @@ if leaf:
 
         if disease == "Tomato_healthy":
             st.success("🌿 Healthy Leaf")
-
         else:
             st.error(f"🍂 {disease.replace('Tomato_','')}")
 
@@ -225,8 +235,7 @@ problem_sensors = {}
 
 try:
 
-    ref = db.reference("sensors")
-    data = ref.get()
+    data = sensor_ref.get()
 
     if data:
 
@@ -246,8 +255,9 @@ try:
             "Light": data.get("light", 0),
         }
 
-except:
-    pass
+except Exception as e:
+    st.error("Firebase connection error")
+    st.write(e)
 
 
 # ================= DISPLAY SENSOR =================
@@ -263,7 +273,6 @@ if st.session_state.sensor_data:
     c3.metric("🌱 Soil Moisture (%)", d["Soil Moisture"])
 
     light_status = "ON" if d["Light"] == 0 else "OFF"
-
     c4.metric("💡 Light", light_status)
 
     st.subheader("📊 Sensor Health Status")
@@ -315,10 +324,8 @@ for s,(lo,hi) in EXTRA_SENSOR_THRESHOLDS.items():
 
         if stt=="Healthy":
             st.success("Healthy")
-
         elif stt=="Moderate Stress":
             st.warning("Moderate Stress")
-
         else:
             st.error("High Stress")
 
@@ -329,10 +336,8 @@ overall = overall_status(sensor_statuses)
 
 if overall=="Healthy":
     st.success("🌿 Overall Sensor Status: HEALTHY")
-
 elif overall=="Moderate Stress":
     st.warning("⚠️ Overall Sensor Status: MODERATE STRESS")
-
 else:
     st.error("🚨 Overall Sensor Status: HIGH STRESS")
 
@@ -367,10 +372,8 @@ if st.button("Final Plant Health Decision ✅"):
 
                 if leaf=="Diseased" and stt=="High Stress":
                     rec = SENSOR_SOLUTIONS_CRITICAL[s]
-
                 elif stt=="High Stress":
                     rec = SENSOR_SOLUTIONS_SEVERE[s]
-
                 else:
                     rec = SENSOR_SOLUTIONS_MODERATE[s]
 
@@ -378,16 +381,12 @@ if st.button("Final Plant Health Decision ✅"):
 
         if leaf=="Healthy" and sensor=="Moderate Stress":
             level,title="warning","⚠️ Recoverable Environmental Stress"
-
         elif leaf=="Healthy" and sensor=="High Stress":
             level,title="error","🚨 Severe Environmental Stress"
-
         elif leaf=="Diseased" and sensor=="Healthy":
             level,title="error","🦠 Disease Detected"
-
         elif leaf=="Diseased" and sensor=="Moderate Stress":
             level,title="warning","🟠 HIGH RISK"
-
         else:
             level,title="error","🚨 CRITICAL CONDITION"
 
