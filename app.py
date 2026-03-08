@@ -1,7 +1,8 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-from keras.models import load_model
+import keras
+load_model = keras.models.load_model 
 from streamlit_autorefresh import st_autorefresh
 
 import firebase_admin
@@ -222,4 +223,5 @@ if st.button("Final Plant Health Decision ✅"):
     if leaf == "Healthy" and sensor == "Healthy":
         st.success("🌿 Plant Healthy")
     else:
+
         st.warning("⚠️ Plant requires attention")
