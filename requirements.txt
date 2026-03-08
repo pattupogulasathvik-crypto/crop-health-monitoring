@@ -5,5 +5,5 @@ pillow
 opencv-python-headless
 streamlit-autorefresh
 tensorflow==2.12.0
-keras==2.12.0
 h5py==3.8.0
+
