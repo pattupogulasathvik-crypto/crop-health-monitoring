@@ -105,47 +105,6 @@ EXTRA_SENSOR_THRESHOLDS = {
 }
 
 
-# ================= SOLUTIONS =================
-LIVE_SENSOR_SOLUTIONS_MODERATE = {
-    "Temperature": "Use shade nets during peak hours",
-    "Humidity": "Improve air circulation",
-    "Soil Moisture": "Slightly increase irrigation",
-}
-
-LIVE_SENSOR_SOLUTIONS_SEVERE = {
-    "Temperature": "Immediate cooling and shading required",
-    "Humidity": "Forced ventilation required",
-    "Soil Moisture": "Immediate irrigation correction",
-}
-
-SENSOR_SOLUTIONS_MODERATE = {
-    "Soil pH": "Minor soil amendment",
-    "Soil Temperature (°C)": "Apply light mulch",
-    "Light Intensity": "Adjust shading",
-    "Nitrogen Level": "Low dose Nitrogen fertilizer",
-    "Phosphorus Level": "Low dose Phosphorus fertilizer",
-    "Potassium Level": "Low dose Potassium fertilizer",
-}
-
-SENSOR_SOLUTIONS_SEVERE = {
-    "Soil pH": "Apply lime or sulfur as required",
-    "Soil Temperature (°C)": "Thick mulching + irrigation",
-    "Light Intensity": "Reduce direct sunlight immediately",
-    "Nitrogen Level": "Recommended Nitrogen dose",
-    "Phosphorus Level": "Recommended Phosphorus dose",
-    "Potassium Level": "Recommended Potassium dose",
-}
-
-SENSOR_SOLUTIONS_CRITICAL = {
-    "Soil pH": "Soil testing before correction",
-    "Soil Temperature (°C)": "Emergency cooling + heavy mulching",
-    "Light Intensity": "Artificial shading immediately",
-    "Nitrogen Level": "Expert-guided nitrogen correction",
-    "Phosphorus Level": "Expert-guided phosphorus correction",
-    "Potassium Level": "Expert-guided potassium correction",
-}
-
-
 # ================= HELPERS =================
 def classify(value, low, high):
 
@@ -186,6 +145,7 @@ LEAF_CLASSES = [
 "Tomato_Tomato_YellowLeaf_Curl_Virus","Tomato_healthy"
 ]
 
+
 LEAF_SOLUTIONS = {
 "Tomato_Bacterial_spot": "Apply copper fungicide; avoid overhead irrigation",
 "Tomato_Early_blight": "Apply Mancozeb; remove infected leaves",
@@ -199,17 +159,25 @@ LEAF_SOLUTIONS = {
 }
 
 
-# ================= LEAF =================
+# ================= LEAF DETECTION =================
 st.subheader("Leaf Disease Detection 🍃")
 
 leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"])
 
+# Save uploaded image
 if leaf is not None:
-
     img = Image.open(leaf).convert("RGB")
     st.session_state.uploaded_leaf = img
 
+
+# If image exists → always run prediction
+if st.session_state.uploaded_leaf is not None:
+
+    img = st.session_state.uploaded_leaf
+    st.image(img, width=250)
+
     arr = np.expand_dims(np.array(img.resize((224,224))) / 255.0, axis=0)
+
     pred = leaf_model.predict(arr, verbose=0)
 
     disease = LEAF_CLASSES[np.argmax(pred)]
@@ -217,15 +185,10 @@ if leaf is not None:
     st.session_state.leaf_disease = disease
     st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
 
-
-if st.session_state.uploaded_leaf is not None:
-
-    st.image(st.session_state.uploaded_leaf,width=250)
-
     if st.session_state.leaf_status=="Healthy":
         st.success("🌿 Healthy Leaf")
     else:
-        st.error(f"🍂 {st.session_state.leaf_disease.replace('Tomato_','')}")
+        st.error(f"🍂 {disease.replace('Tomato_','')}")
 
 
 st.divider()
@@ -352,32 +315,14 @@ if st.button("Final Plant Health Decision ✅"):
 
         for s,stt in problem_sensors.items():
 
-            if s in LIVE_SENSOR_SOLUTIONS_MODERATE:
-                rec = LIVE_SENSOR_SOLUTIONS_SEVERE[s] if stt=="High Stress" else LIVE_SENSOR_SOLUTIONS_MODERATE[s]
-
+            if stt=="High Stress":
+                rec = "Immediate correction required"
             else:
-
-                if leaf=="Diseased" and stt=="High Stress":
-                    rec = SENSOR_SOLUTIONS_CRITICAL[s]
-                elif stt=="High Stress":
-                    rec = SENSOR_SOLUTIONS_SEVERE[s]
-                else:
-                    rec = SENSOR_SOLUTIONS_MODERATE[s]
+                rec = "Minor adjustment recommended"
 
             messages.append(f"{s} → {rec}")
 
-        if leaf=="Healthy" and sensor=="Moderate Stress":
-            level,title="warning","⚠️ Recoverable Environmental Stress"
-        elif leaf=="Healthy" and sensor=="High Stress":
-            level,title="error","🚨 Severe Environmental Stress"
-        elif leaf=="Diseased" and sensor=="Healthy":
-            level,title="error","🦠 Disease Detected"
-        elif leaf=="Diseased" and sensor=="Moderate Stress":
-            level,title="warning","🟠 HIGH RISK"
-        else:
-            level,title="error","🚨 CRITICAL CONDITION"
-
-        st.session_state.final_decision=(level,title,messages)
+        st.session_state.final_decision=("warning","⚠️ Plant Requires Attention",messages)
 
 
 # ================= OUTPUT =================
@@ -389,6 +334,3 @@ if st.session_state.final_decision:
 
     for m in msgs:
         st.write(f"- {m}")
-
-    if "CRITICAL" in title:
-        st.write("🚜 Consult agricultural expert immediately.")
