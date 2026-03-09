@@ -21,32 +21,57 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+.block-container{
+padding-top:2rem;
+padding-bottom:2rem;
+}
+
 .main-title{
-font-size:42px;
+font-size:40px;
 font-weight:700;
 text-align:center;
+margin-bottom:10px;
+}
+
+.section-title{
+font-size:26px;
+font-weight:600;
+margin-top:10px;
 }
 
 [data-testid="stMetricValue"]{
-font-size:26px;
+font-size:24px;
 }
 
+button{
+width:100%;
+border-radius:10px !important;
+font-size:16px !important;
+padding:10px !important;
+}
+
+img{
+border-radius:12px;
+}
+
+/* MOBILE */
 @media (max-width:768px){
 
 .main-title{
-font-size:28px;
+font-size:26px;
 }
 
-h2{
-font-size:22px;
-}
-
-h3{
+.section-title{
 font-size:20px;
 }
 
 [data-testid="stMetricValue"]{
-font-size:30px;
+font-size:20px;
+}
+
+.block-container{
+padding-left:1rem;
+padding-right:1rem;
 }
 
 }
@@ -168,7 +193,7 @@ LEAF_SOLUTIONS = {
 
 
 # ================= LEAF DETECTION =================
-st.subheader("Leaf Disease Detection 🍃")
+st.markdown('<div class="section-title">Leaf Disease Detection 🍃</div>', unsafe_allow_html=True)
 
 leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"], key="leaf_upload")
 
@@ -176,7 +201,6 @@ if leaf is not None:
 
     img = Image.open(leaf).convert("RGB")
 
-    # detect new image upload
     if st.session_state.last_file != leaf.name:
 
         st.session_state.last_file = leaf.name
@@ -197,10 +221,9 @@ if leaf is not None:
         st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
 
 
-# show image
 if st.session_state.uploaded_leaf is not None:
 
-    st.image(st.session_state.uploaded_leaf, width="stretch")
+    st.image(st.session_state.uploaded_leaf, use_container_width=True)
 
     if st.session_state.leaf_status == "Healthy":
 
@@ -217,7 +240,7 @@ st.divider()
 
 
 # ================= LIVE SENSOR DATA =================
-st.subheader("Live Sensor Data 🌡️")
+st.markdown('<div class="section-title">Live Sensor Data 🌡️</div>', unsafe_allow_html=True)
 
 sensor_statuses=[]
 problem_sensors={}
@@ -257,7 +280,7 @@ if st.session_state.sensor_data:
     light_status = "ON" if d["Light"]==0 else "OFF"
     col4.metric("💡 Light", light_status)
 
-    st.markdown("**Sensor Health Status**")
+    st.write("**Sensor Health Status**")
 
     for s,(lo,hi) in REALTIME_THRESHOLDS.items():
 
@@ -274,8 +297,8 @@ if st.session_state.sensor_data:
 st.divider()
 
 
-# ================= EXTRA SENSOR SLIDERS =================
-st.subheader("Additional Sensor Inputs")
+# ================= EXTRA SENSOR =================
+st.markdown('<div class="section-title">Additional Sensor Inputs</div>', unsafe_allow_html=True)
 
 for s,(lo,hi) in EXTRA_SENSOR_THRESHOLDS.items():
 
@@ -319,9 +342,9 @@ st.divider()
 
 
 # ================= FINAL DECISION =================
-st.subheader("Final Plant Health Decision")
+st.markdown('<div class="section-title">Final Plant Health Decision</div>', unsafe_allow_html=True)
 
-if st.button("Final Plant Health Decision ✅"):
+if st.button("🌿 Final Plant Health Decision"):
 
     leaf = st.session_state.leaf_status
     sensor = overall
