@@ -172,12 +172,11 @@ st.subheader("Leaf Disease Detection 🍃")
 
 leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"], key="leaf_upload")
 
-
 if leaf is not None:
 
     img = Image.open(leaf).convert("RGB")
 
-    # Detect new image
+    # detect new image upload
     if st.session_state.last_file != leaf.name:
 
         st.session_state.last_file = leaf.name
@@ -188,7 +187,6 @@ if leaf is not None:
         st.session_state.predicting = True
 
         with st.spinner("Analyzing leaf disease..."):
-
             pred = leaf_model.predict(arr, verbose=0)
 
         st.session_state.predicting = False
@@ -199,14 +197,20 @@ if leaf is not None:
         st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
 
 
+# show image
 if st.session_state.uploaded_leaf is not None:
 
-    st.image(st.session_state.uploaded_leaf, use_column_width=True)
+    st.image(st.session_state.uploaded_leaf, width="stretch")
 
     if st.session_state.leaf_status == "Healthy":
+
         st.success("🌿 Healthy Leaf")
-    else:
-        st.error(f"🍂 {st.session_state.leaf_disease.replace('Tomato_','')}")
+
+    elif st.session_state.leaf_disease:
+
+        disease_name = st.session_state.leaf_disease.replace("Tomato_", "")
+
+        st.error(f"🍂 {disease_name}")
 
 
 st.divider()
