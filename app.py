@@ -14,7 +14,7 @@ import json
 # ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="IoT Based Crop Health Monitoring System",
-    layout="centered"
+    layout="wide"
 )
 
 # ================= MOBILE UI STYLE =================
@@ -27,10 +27,14 @@ font-weight:700;
 text-align:center;
 }
 
+[data-testid="stMetricValue"]{
+font-size:26px;
+}
+
 @media (max-width:768px){
 
 .main-title{
-font-size:30px;
+font-size:28px;
 }
 
 h2{
@@ -41,8 +45,8 @@ h3{
 font-size:20px;
 }
 
-.stMetric{
-font-size:14px;
+[data-testid="stMetricValue"]{
+font-size:30px;
 }
 
 }
@@ -54,8 +58,23 @@ st.markdown('<div class="main-title">IoT Based Crop Health Monitoring System �
 st.divider()
 
 
+# ================= SESSION STATE =================
+for key in [
+    "sensor_data",
+    "leaf_status",
+    "leaf_disease",
+    "final_decision",
+    "uploaded_leaf",
+    "last_file",
+    "predicting"
+]:
+    if key not in st.session_state:
+        st.session_state[key] = None
+
+
 # ================= AUTO REFRESH =================
-st_autorefresh(interval=5000, key="sensor_refresh")
+if not st.session_state.predicting:
+    st_autorefresh(interval=5000, key="sensor_refresh")
 
 
 # ================= FIREBASE INIT =================
@@ -63,6 +82,7 @@ st_autorefresh(interval=5000, key="sensor_refresh")
 def init_firebase():
 
     firebase_dict = json.loads(os.environ["FIREBASE_KEY"])
+
     cred = credentials.Certificate(firebase_dict)
 
     if not firebase_admin._apps:
@@ -74,18 +94,6 @@ def init_firebase():
     return db.reference("sensors")
 
 sensor_ref = init_firebase()
-
-
-# ================= SESSION STATE =================
-for key in [
-    "sensor_data",
-    "leaf_status",
-    "leaf_disease",
-    "final_decision",
-    "uploaded_leaf"
-]:
-    if key not in st.session_state:
-        st.session_state[key] = None
 
 
 # ================= THRESHOLDS =================
@@ -162,33 +170,43 @@ LEAF_SOLUTIONS = {
 # ================= LEAF DETECTION =================
 st.subheader("Leaf Disease Detection 🍃")
 
-leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"])
+leaf = st.file_uploader("Upload tomato leaf image", ["jpg","jpeg","png"], key="leaf_upload")
 
-# Save uploaded image
+
 if leaf is not None:
+
     img = Image.open(leaf).convert("RGB")
-    st.session_state.uploaded_leaf = img
+
+    # Detect new image
+    if st.session_state.last_file != leaf.name:
+
+        st.session_state.last_file = leaf.name
+        st.session_state.uploaded_leaf = img
+
+        arr = np.expand_dims(np.array(img.resize((224,224))) / 255.0, axis=0)
+
+        st.session_state.predicting = True
+
+        with st.spinner("Analyzing leaf disease..."):
+
+            pred = leaf_model.predict(arr, verbose=0)
+
+        st.session_state.predicting = False
+
+        disease = LEAF_CLASSES[np.argmax(pred)]
+
+        st.session_state.leaf_disease = disease
+        st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
 
 
-# If image exists → always run prediction
 if st.session_state.uploaded_leaf is not None:
 
-    img = st.session_state.uploaded_leaf
-    st.image(img, width=250)
+    st.image(st.session_state.uploaded_leaf, use_column_width=True)
 
-    arr = np.expand_dims(np.array(img.resize((224,224))) / 255.0, axis=0)
-
-    pred = leaf_model.predict(arr, verbose=0)
-
-    disease = LEAF_CLASSES[np.argmax(pred)]
-
-    st.session_state.leaf_disease = disease
-    st.session_state.leaf_status = "Healthy" if disease=="Tomato_healthy" else "Diseased"
-
-    if st.session_state.leaf_status=="Healthy":
+    if st.session_state.leaf_status == "Healthy":
         st.success("🌿 Healthy Leaf")
     else:
-        st.error(f"🍂 {disease.replace('Tomato_','')}")
+        st.error(f"🍂 {st.session_state.leaf_disease.replace('Tomato_','')}")
 
 
 st.divider()
@@ -207,6 +225,7 @@ try:
     if data:
 
         raw_soil = data.get("soil",0)
+
         soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
 
         st.session_state.sensor_data={
@@ -306,6 +325,7 @@ if st.button("Final Plant Health Decision ✅"):
     messages=[]
 
     if leaf=="Healthy" and sensor=="Healthy":
+
         st.session_state.final_decision=("success","🌿 Plant Healthy",["✅ No action required"])
 
     else:
