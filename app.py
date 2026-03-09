@@ -54,7 +54,6 @@ img{
 border-radius:12px;
 }
 
-/* MOBILE */
 @media (max-width:768px){
 
 .main-title{
@@ -135,6 +134,47 @@ EXTRA_SENSOR_THRESHOLDS = {
     "Nitrogen Level": (40.0, 70.0),
     "Phosphorus Level": (30.0, 60.0),
     "Potassium Level": (40.0, 70.0),
+}
+
+
+# ================= SENSOR SOLUTIONS =================
+LIVE_SENSOR_SOLUTIONS_MODERATE = {
+    "Temperature": "Use shade nets during peak hours",
+    "Humidity": "Improve air circulation",
+    "Soil Moisture": "Slightly increase irrigation",
+}
+
+LIVE_SENSOR_SOLUTIONS_SEVERE = {
+    "Temperature": "Immediate cooling and shading required",
+    "Humidity": "Forced ventilation required",
+    "Soil Moisture": "Immediate irrigation correction",
+}
+
+SENSOR_SOLUTIONS_MODERATE = {
+    "Soil pH": "Minor soil amendment",
+    "Soil Temperature (°C)": "Apply light mulch",
+    "Light Intensity": "Adjust shading",
+    "Nitrogen Level": "Low dose Nitrogen fertilizer",
+    "Phosphorus Level": "Low dose Phosphorus fertilizer",
+    "Potassium Level": "Low dose Potassium fertilizer",
+}
+
+SENSOR_SOLUTIONS_SEVERE = {
+    "Soil pH": "Apply lime or sulfur as required",
+    "Soil Temperature (°C)": "Thick mulching + irrigation",
+    "Light Intensity": "Reduce direct sunlight immediately",
+    "Nitrogen Level": "Recommended Nitrogen dose",
+    "Phosphorus Level": "Recommended Phosphorus dose",
+    "Potassium Level": "Recommended Potassium dose",
+}
+
+SENSOR_SOLUTIONS_CRITICAL = {
+    "Soil pH": "Soil testing before correction",
+    "Soil Temperature (°C)": "Emergency cooling + heavy mulching",
+    "Light Intensity": "Artificial shading immediately",
+    "Nitrogen Level": "Expert-guided nitrogen correction",
+    "Phosphorus Level": "Expert-guided phosphorus correction",
+    "Potassium Level": "Expert-guided potassium correction",
 }
 
 
@@ -226,13 +266,10 @@ if st.session_state.uploaded_leaf is not None:
     st.image(st.session_state.uploaded_leaf, use_container_width=True)
 
     if st.session_state.leaf_status == "Healthy":
-
         st.success("🌿 Healthy Leaf")
 
     elif st.session_state.leaf_disease:
-
         disease_name = st.session_state.leaf_disease.replace("Tomato_", "")
-
         st.error(f"🍂 {disease_name}")
 
 
@@ -252,7 +289,6 @@ try:
     if data:
 
         raw_soil = data.get("soil",0)
-
         soil_percent = max(0,min(100,(4095-raw_soil)*100/4095))
 
         st.session_state.sensor_data={
@@ -362,14 +398,40 @@ if st.button("🌿 Final Plant Health Decision"):
 
         for s,stt in problem_sensors.items():
 
-            if stt=="High Stress":
-                rec = "Immediate correction required"
+            if s in LIVE_SENSOR_SOLUTIONS_MODERATE:
+
+                rec = LIVE_SENSOR_SOLUTIONS_SEVERE[s] if stt=="High Stress" else LIVE_SENSOR_SOLUTIONS_MODERATE[s]
+
             else:
-                rec = "Minor adjustment recommended"
+
+                if leaf=="Diseased" and stt=="High Stress":
+                    rec = SENSOR_SOLUTIONS_CRITICAL[s]
+
+                elif stt=="High Stress":
+                    rec = SENSOR_SOLUTIONS_SEVERE[s]
+
+                else:
+                    rec = SENSOR_SOLUTIONS_MODERATE[s]
 
             messages.append(f"{s} → {rec}")
 
-        st.session_state.final_decision=("warning","⚠️ Plant Requires Attention",messages)
+        # Severity alerts
+        if leaf=="Healthy" and sensor=="Moderate Stress":
+            level,title="warning","⚠️ Recoverable Environmental Stress"
+
+        elif leaf=="Healthy" and sensor=="High Stress":
+            level,title="error","🚨 Severe Environmental Stress"
+
+        elif leaf=="Diseased" and sensor=="Healthy":
+            level,title="error","🦠 Disease Detected"
+
+        elif leaf=="Diseased" and sensor=="Moderate Stress":
+            level,title="warning","🟠 HIGH RISK"
+
+        else:
+            level,title="error","🚨 CRITICAL CONDITION"
+
+        st.session_state.final_decision=(level,title,messages)
 
 
 # ================= OUTPUT =================
